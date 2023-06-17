@@ -4,7 +4,7 @@ from tkinter import ttk
 from ttkwidgets import TickScale
 
 
-class MainUI(ttk.Frame):  # TODO: Subdivide into smaller components? This class is getting bloated...
+class MainUI(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent, padding=8)
         self.pack(fill=tk.BOTH, expand=True)
@@ -13,26 +13,31 @@ class MainUI(ttk.Frame):  # TODO: Subdivide into smaller components? This class 
         self.style = ttk.Style()
         self.style.theme_use("default")
 
-        #
-        #
         # Tabs (for each primitive type to raster)
         self.tabs = ttk.Notebook(self)
-        self.tabs.pack(expand=True)
+        self.tabs.pack(fill=tk.BOTH, expand=True)
 
-        self.fr_tab_line = ttk.Frame(self.tabs)
-        self.fr_tab_line.pack(fill=tk.BOTH, expand=True)
-        self.fr_tab_circle = ttk.Frame(self.tabs)
-        self.fr_tab_circle.pack(fill=tk.BOTH, expand=True)
+        self.fr_tab_line = LineTab(self.tabs)
+        self.fr_tab_circle = CircleTab(self.tabs)
         self.fr_tab_bezier = ttk.Frame(self.tabs)
-        self.fr_tab_bezier.pack(fill=tk.BOTH, expand=True)
+        self.fr_tab_fill = ttk.Frame(self.tabs)
 
         self.tabs.add(self.fr_tab_line, text="Line")
         self.tabs.add(self.fr_tab_circle, text="Circle")
         self.tabs.add(self.fr_tab_bezier, text="Bezier Curve")
+        self.tabs.add(self.fr_tab_fill, text="Area Fill")
+
+        self.fr_tab_line.columnconfigure(0, weight=1)
+        self.fr_tab_circle.columnconfigure(0, weight=1)
+
+
+class LineTab(ttk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
 
         #
         # Slider widgets toolbar ('Line' tab)
-        self.fr_line_toolbar = ttk.Frame(self.fr_tab_line)
+        self.fr_line_toolbar = ttk.Frame(self)
         self.fr_line_toolbar.grid(row=0, column=0, padx=4, pady=(4, 8), sticky=tk.NSEW)
 
         # Sliders for P1 coordinates
@@ -136,7 +141,7 @@ class MainUI(ttk.Frame):  # TODO: Subdivide into smaller components? This class 
 
         #
         # Raster options dropdown menu ('Line' tab)
-        self.fr_line_options = ttk.Frame(self.fr_tab_line)
+        self.fr_line_options = ttk.Frame(self)
         self.fr_line_options.grid(row=1, column=0, padx=4, pady=(0, 8), sticky=tk.NSEW)
 
         self.line_options_label = ttk.Label(self.fr_line_options, text="Raster options:")
@@ -152,8 +157,53 @@ class MainUI(ttk.Frame):  # TODO: Subdivide into smaller components? This class 
         self.line_options_menu.grid(row=0, column=1, sticky=tk.W)
 
         #
+        # Display canvas ('Line' tab)
+        self.fr_img_view = ttk.Frame(self, borderwidth=1, relief=tk.SUNKEN)
+        self.fr_img_view.grid(row=2, column=0, padx=4, pady=(0, 4), sticky=tk.NSEW)
+
+        self.canvas = tk.Canvas(self.fr_img_view, borderwidth=-2)
+        self.canvas.config(width=320, height=320)
+        self.canvas.pack()
+
+        self.photoimage = None
+
+        # Bindings
+        self.p1x_scale.scale.bind("<MouseWheel>", self.update_value)
+        self.p1y_scale.scale.bind("<MouseWheel>", self.update_value)
+        self.p2x_scale.scale.bind("<MouseWheel>", self.update_value)
+        self.p2y_scale.scale.bind("<MouseWheel>", self.update_value)
+
+    @staticmethod
+    def update_value(event):
+        current = event.widget.get()
+        from_ = event.widget.cget("from")
+        to = event.widget.cget("to")
+
+        if hasattr(event, "delta"):
+            if event.delta == -120:
+                if current >= (to - 1):
+                    event.widget.set(to)
+                else:
+                    event.widget.set(current + 2)
+            elif event.delta == 120:
+                if current <= (from_ + 1):
+                    event.widget.set(from_)
+                else:
+                    event.widget.set(current - 2)
+
+    def update_canvas(self, image: Image):
+        self.canvas.delete("all")
+        self.photoimage = ImageTk.PhotoImage(image)  # Reference needed to prevent gargabe collection
+        self.canvas.create_image(0, 0, image=self.photoimage, anchor=tk.NW)
+
+
+class CircleTab(ttk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        #
         # Slider widgets toolbar ('Circle' tab)
-        self.fr_circle_toolbar = ttk.Frame(self.fr_tab_circle)
+        self.fr_circle_toolbar = ttk.Frame(self)
         self.fr_circle_toolbar.grid(row=0, column=0, padx=4, pady=(4, 8), sticky=tk.NSEW)
 
         # Sliders for cincunference parameters
@@ -177,7 +227,7 @@ class MainUI(ttk.Frame):  # TODO: Subdivide into smaller components? This class 
             variable=self.xc_var,
             showvalue=True
         )
-        self.xc_scale.set(19)
+        self.xc_scale.set(0)
         self.xc_scale.grid(row=0, column=1)
 
         # Separator
@@ -201,7 +251,7 @@ class MainUI(ttk.Frame):  # TODO: Subdivide into smaller components? This class 
             variable=self.yc_var,
             showvalue=True
         )
-        self.yc_scale.set(19)
+        self.yc_scale.set(0)
         self.yc_scale.grid(row=0, column=1)
 
         # Separator
@@ -226,12 +276,12 @@ class MainUI(ttk.Frame):  # TODO: Subdivide into smaller components? This class 
             variable=self.radius_var,
             showvalue=True
         )
-        self.radius_scale.set(19)
+        self.radius_scale.set(39)
         self.radius_scale.grid(row=0, column=1)
 
         #
         # Raster options dropdown menu ('Circle' tab)
-        self.fr_circle_options = ttk.Frame(self.fr_tab_circle)
+        self.fr_circle_options = ttk.Frame(self)
         self.fr_circle_options.grid(row=1, column=0, padx=4, pady=(0, 8), sticky=tk.NSEW)
 
         self.circle_options_label = ttk.Label(self.fr_circle_options, text="Raster options:")
@@ -247,8 +297,8 @@ class MainUI(ttk.Frame):  # TODO: Subdivide into smaller components? This class 
         self.circle_options_menu.grid(row=0, column=1, sticky=tk.W)
 
         #
-        # Display canvas
-        self.fr_img_view = ttk.Frame(self.fr_tab_line, borderwidth=1, relief=tk.SUNKEN)
+        # Display canvas ('Circle' tab)
+        self.fr_img_view = ttk.Frame(self, borderwidth=1, relief=tk.SUNKEN)
         self.fr_img_view.grid(row=2, column=0, padx=4, pady=(0, 4), sticky=tk.NSEW)
 
         self.canvas = tk.Canvas(self.fr_img_view, borderwidth=-2)
@@ -256,6 +306,29 @@ class MainUI(ttk.Frame):  # TODO: Subdivide into smaller components? This class 
         self.canvas.pack()
 
         self.photoimage = None
+
+        # Bindings
+        self.xc_scale.scale.bind("<MouseWheel>", self.update_value)
+        self.yc_scale.scale.bind("<MouseWheel>", self.update_value)
+        self.radius_scale.scale.bind("<MouseWheel>", self.update_value)
+
+    @staticmethod
+    def update_value(event):
+        current = event.widget.get()
+        from_ = event.widget.cget("from")
+        to = event.widget.cget("to")
+
+        if hasattr(event, "delta"):
+            if event.delta == -120:
+                if current >= (to - 1):
+                    event.widget.set(to)
+                else:
+                    event.widget.set(current + 2)
+            elif event.delta == 120:
+                if current <= (from_ + 1):
+                    event.widget.set(from_)
+                else:
+                    event.widget.set(current - 2)
 
     def update_canvas(self, image: Image):
         self.canvas.delete("all")
