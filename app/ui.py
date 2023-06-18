@@ -30,6 +30,12 @@ class MainUI(ttk.Frame):
         self.fr_tab_line.columnconfigure(0, weight=1)
         self.fr_tab_circle.columnconfigure(0, weight=1)
 
+        # Placeholders
+        self.tba_label = ttk.Label(self.fr_tab_bezier, text="A ser adicionado...")
+        self.tba_label.pack()
+        self.tba_label = ttk.Label(self.fr_tab_fill, text="A ser adicionado...")
+        self.tba_label.pack()
+
 
 class LineTab(ttk.Frame):
     def __init__(self, parent):
@@ -147,7 +153,12 @@ class LineTab(ttk.Frame):
         self.line_options_label = ttk.Label(self.fr_line_options, text="Raster options:")
         self.line_options_label.grid(row=0, column=0, padx=(0, 4), sticky=tk.W)
         self.line_options_var = tk.StringVar(self)
-        self.line_options_list = ["Analítico", "DDA", "Bresenham", "Analítico + DDA"]
+        self.line_options_list = [
+            "Analítico",
+            "DDA",
+            "Bresenham",
+            "DDA + Analítico"
+        ]
         self.line_options_menu = ttk.OptionMenu(
             self.fr_line_options,
             self.line_options_var,
@@ -155,6 +166,8 @@ class LineTab(ttk.Frame):
             *self.line_options_list
         )
         self.line_options_menu.grid(row=0, column=1, sticky=tk.W)
+
+        # TODO: Create save image button.
 
         #
         # Display canvas ('Line' tab)
@@ -287,7 +300,12 @@ class CircleTab(ttk.Frame):
         self.circle_options_label = ttk.Label(self.fr_circle_options, text="Raster options:")
         self.circle_options_label.grid(row=0, column=0, padx=(0, 4), sticky=tk.W)
         self.circle_options_var = tk.StringVar(self)
-        self.circle_options_list = ["Paramétrico", "Simétrico", "Paramétrico + Simétrico"]
+        self.circle_options_list = [
+            "Paramétrico",
+            "Simétrico",
+            "Bresenham",
+            "Paramétrico + Simétrico"
+        ]
         self.circle_options_menu = ttk.OptionMenu(
             self.fr_circle_options,
             self.circle_options_var,
@@ -295,6 +313,8 @@ class CircleTab(ttk.Frame):
             *self.circle_options_list
         )
         self.circle_options_menu.grid(row=0, column=1, sticky=tk.W)
+
+        # TODO: Create save image button.
 
         #
         # Display canvas ('Circle' tab)

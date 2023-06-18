@@ -11,9 +11,9 @@ class App(tk.Tk):
 
         self.title("Rasters")
 
-        self.image = Image.new("RGBA", (40, 40), "white")
+        # self.image = Image.new("RGBA", (40, 40), "white")
         self.front = MainUI(self)
-        self.back = Rasters(self.front, self.image)
+        self.back = Rasters(self.front)
 
 
 if __name__ == '__main__':
