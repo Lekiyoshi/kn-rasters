@@ -1,8 +1,7 @@
 import tkinter as tk
-from PIL import Image
 
-from ui import MainUI
 from rasters import Rasters
+from ui import MainUI
 
 
 class App(tk.Tk):
@@ -11,7 +10,6 @@ class App(tk.Tk):
 
         self.title("Rasters")
 
-        # self.image = Image.new("RGBA", (40, 40), "white")
         self.front = MainUI(self)
         self.back = Rasters(self.front)
 

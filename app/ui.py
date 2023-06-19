@@ -1,7 +1,13 @@
 import tkinter as tk
-from PIL import Image, ImageTk
 from tkinter import ttk
+
+from PIL import Image, ImageTk
 from ttkwidgets import TickScale
+
+BUTTON_SIZE = {
+    'width': 35,
+    'height': 35
+}
 
 
 class MainUI(ttk.Frame):
@@ -19,22 +25,16 @@ class MainUI(ttk.Frame):
 
         self.fr_tab_line = LineTab(self.tabs)
         self.fr_tab_circle = CircleTab(self.tabs)
-        self.fr_tab_bezier = ttk.Frame(self.tabs)
-        self.fr_tab_fill = ttk.Frame(self.tabs)
+        self.fr_tab_fill = AreaFillTab(self.tabs)
+        self.fr_tab_bezier = BezierTab(self.tabs)
 
         self.tabs.add(self.fr_tab_line, text="Line")
         self.tabs.add(self.fr_tab_circle, text="Circle")
-        self.tabs.add(self.fr_tab_bezier, text="Bezier Curve")
         self.tabs.add(self.fr_tab_fill, text="Area Fill")
+        self.tabs.add(self.fr_tab_bezier, text="Bézier Curve")
 
         self.fr_tab_line.columnconfigure(0, weight=1)
         self.fr_tab_circle.columnconfigure(0, weight=1)
-
-        # Placeholders
-        self.tba_label = ttk.Label(self.fr_tab_bezier, text="A ser adicionado...")
-        self.tba_label.pack()
-        self.tba_label = ttk.Label(self.fr_tab_fill, text="A ser adicionado...")
-        self.tba_label.pack()
 
 
 class LineTab(ttk.Frame):
@@ -165,9 +165,43 @@ class LineTab(ttk.Frame):
             self.line_options_list[0],
             *self.line_options_list
         )
+        self.line_options_menu.config(width=12)
         self.line_options_menu.grid(row=0, column=1, sticky=tk.W)
 
-        # TODO: Create save image button.
+        # Separator
+        self.sep = ttk.Separator(self.fr_line_options, orient=tk.VERTICAL)
+        self.sep.grid(row=0, column=2, padx=6, sticky=tk.NS)
+
+        # Save button
+        self.fr_btn_save_img = ttk.Frame(self.fr_line_options, **BUTTON_SIZE)
+        self.fr_btn_save_img.grid(
+            row=0,
+            column=3,
+            padx=(0, 4),
+            sticky=tk.W
+        )
+        self.fr_btn_save_img.pack_propagate(False)
+
+        self.floppy_icon = tk.PhotoImage(file="./img/floppy.png")
+        self.btn_save_img = ttk.Button(
+            self.fr_btn_save_img, image=self.floppy_icon, compound=tk.LEFT
+        )
+        self.btn_save_img.pack(fill=tk.BOTH, expand=True)
+
+        # Benchmark button
+        self.fr_btn_exectime = ttk.Frame(self.fr_line_options, **BUTTON_SIZE)
+        self.fr_btn_exectime.grid(
+            row=0,
+            column=4,
+            sticky=tk.W
+        )
+        self.fr_btn_exectime.pack_propagate(False)
+
+        self.stopwatch_icon = tk.PhotoImage(file="./img/stopwatch.png")
+        self.btn_exectime = ttk.Button(
+            self.fr_btn_exectime, image=self.stopwatch_icon, compound=tk.LEFT
+        )
+        self.btn_exectime.pack(fill=tk.BOTH, expand=True)
 
         #
         # Display canvas ('Line' tab)
@@ -206,7 +240,9 @@ class LineTab(ttk.Frame):
 
     def update_canvas(self, image: Image):
         self.canvas.delete("all")
-        self.photoimage = ImageTk.PhotoImage(image)  # Reference needed to prevent gargabe collection
+        self.photoimage = ImageTk.PhotoImage(  # Reference needed to prevent gargabe collection
+            image.resize((320, 320), Image.NEAREST).transpose(Image.FLIP_TOP_BOTTOM)
+        )
         self.canvas.create_image(0, 0, image=self.photoimage, anchor=tk.NW)
 
 
@@ -312,9 +348,43 @@ class CircleTab(ttk.Frame):
             self.circle_options_list[0],
             *self.circle_options_list
         )
+        self.circle_options_menu.config(width=12)
         self.circle_options_menu.grid(row=0, column=1, sticky=tk.W)
 
-        # TODO: Create save image button.
+        # Separator
+        self.sep = ttk.Separator(self.fr_circle_options, orient=tk.VERTICAL)
+        self.sep.grid(row=0, column=2, padx=6, sticky=tk.NS)
+
+        # Save button
+        self.fr_btn_save_img = ttk.Frame(self.fr_circle_options, **BUTTON_SIZE)
+        self.fr_btn_save_img.grid(
+            row=0,
+            column=3,
+            padx=(0, 4),
+            sticky=tk.W
+        )
+        self.fr_btn_save_img.pack_propagate(False)
+
+        self.floppy_icon = tk.PhotoImage(file="./img/floppy.png")
+        self.btn_save_img = ttk.Button(
+            self.fr_btn_save_img, image=self.floppy_icon, compound=tk.LEFT
+        )
+        self.btn_save_img.pack(fill=tk.BOTH, expand=True)
+
+        # Benchmark button
+        self.fr_btn_exectime = ttk.Frame(self.fr_circle_options, **BUTTON_SIZE)
+        self.fr_btn_exectime.grid(
+            row=0,
+            column=4,
+            sticky=tk.W
+        )
+        self.fr_btn_exectime.pack_propagate(False)
+
+        self.stopwatch_icon = tk.PhotoImage(file="./img/stopwatch.png")
+        self.btn_exectime = ttk.Button(
+            self.fr_btn_exectime, image=self.stopwatch_icon, compound=tk.LEFT
+        )
+        self.btn_exectime.pack(fill=tk.BOTH, expand=True)
 
         #
         # Display canvas ('Circle' tab)
@@ -352,5 +422,26 @@ class CircleTab(ttk.Frame):
 
     def update_canvas(self, image: Image):
         self.canvas.delete("all")
-        self.photoimage = ImageTk.PhotoImage(image)  # Reference needed to prevent gargabe collection
+        self.photoimage = ImageTk.PhotoImage(  # Reference needed to prevent gargabe collection
+            image.resize((320, 320), Image.NEAREST).transpose(Image.FLIP_TOP_BOTTOM)
+        )
         self.canvas.create_image(0, 0, image=self.photoimage, anchor=tk.NW)
+
+
+class AreaFillTab(ttk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        # Placeholders
+        self.tba_label = ttk.Label(self, anchor=tk.CENTER, text="A ser implementado...")
+        self.tba_label.pack(fill=tk.BOTH, expand=True)
+
+
+class BezierTab(ttk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        # Placeholders
+        self.tba_label = ttk.Label(self, anchor=tk.CENTER, text="A ser implementado...")
+        self.tba_label.pack(fill=tk.BOTH, expand=True)
+

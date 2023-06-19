@@ -1,0 +1,50 @@
+Image dimensions: 400 x 400
+
+Circunference parameters:
+Xc: 200
+Yc: 200
+Color: (0, 0, 0, 255)
+
+Círculo paramétrico:
+radius:   0, exec-time: 599600 ns
+radius:  10, exec-time: 565100 ns
+radius:  20, exec-time: 511500 ns
+radius:  30, exec-time: 582000 ns
+radius:  40, exec-time: 592300 ns
+radius:  50, exec-time: 567400 ns
+radius:  60, exec-time: 618400 ns
+radius:  70, exec-time: 589200 ns
+radius:  80, exec-time: 665000 ns
+radius:  90, exec-time: 553000 ns
+radius: 100, exec-time: 583800 ns
+radius: 110, exec-time: 619600 ns
+radius: 120, exec-time: 564700 ns
+radius: 130, exec-time: 580100 ns
+radius: 140, exec-time: 585300 ns
+radius: 150, exec-time: 581100 ns
+radius: 160, exec-time: 592900 ns
+radius: 170, exec-time: 613700 ns
+radius: 180, exec-time: 576200 ns
+radius: 190, exec-time: 584800 ns
+
+Círculo incremental simétrico:
+radius:   0, exec-time: 13400 ns
+radius:  10, exec-time: 97900 ns
+radius:  20, exec-time: 171800 ns
+radius:  30, exec-time: 259100 ns
+radius:  40, exec-time: 357600 ns
+radius:  50, exec-time: 435500 ns
+radius:  60, exec-time: 462800 ns
+radius:  70, exec-time: 615600 ns
+radius:  80, exec-time: 666500 ns
+radius:  90, exec-time: 772700 ns
+radius: 100, exec-time: 877700 ns
+radius: 110, exec-time: 863900 ns
+radius: 120, exec-time: 1007200 ns
+radius: 130, exec-time: 1090900 ns
+radius: 140, exec-time: 1070100 ns
+radius: 150, exec-time: 1208400 ns
+radius: 160, exec-time: 1353100 ns
+radius: 170, exec-time: 1415400 ns
+radius: 180, exec-time: 1357100 ns
+radius: 190, exec-time: 1544400 ns

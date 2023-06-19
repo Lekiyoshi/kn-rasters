@@ -1,4 +1,5 @@
 from math import cos, sin, radians
+
 from PIL import Image, ImageColor
 
 from ui import MainUI
@@ -57,9 +58,7 @@ class Rasters:
             self.linha_dda(x1, y1, x2, y2, ImageColor.getcolor("blue", "RGBA"))
             self.linha_analitico(x1, y1, x2, y2, ImageColor.getcolor("red", "RGBA"))
 
-        self.front.fr_tab_line.update_canvas(
-            self.image.resize((320, 320), Image.NEAREST).transpose(Image.FLIP_TOP_BOTTOM)
-        )
+        self.front.fr_tab_line.update_canvas(self.image)
 
     def redraw_line(self, a=None, b=None, c=None):
         # 'a', 'b', e 'c' are unused parameters received by the callbacks
@@ -76,18 +75,16 @@ class Rasters:
         method = self.front.fr_tab_circle.circle_options_var.get()
 
         if method == "Paramétrico":
-            self.circulo_parametrico(xc, yc, radius, 1, ImageColor.getcolor("red", "RGBA"))
+            self.circulo_parametrico(xc, yc, radius, ImageColor.getcolor("red", "RGBA"))
         elif method == "Simétrico":
             self.circulo_simetrico(xc, yc, radius, ImageColor.getcolor("blue", "RGBA"))
         elif method == "Bresenham":
             ...  # TODO: Implementar o algoritmo de Bresenham.
         else:
-            self.circulo_parametrico(xc, yc, radius, 1, ImageColor.getcolor("red", "RGBA"))
+            self.circulo_parametrico(xc, yc, radius, ImageColor.getcolor("red", "RGBA"))
             self.circulo_simetrico(xc, yc, radius, ImageColor.getcolor("blue", "RGBA"))
 
-        self.front.fr_tab_circle.update_canvas(
-            self.image.resize((320, 320), Image.NEAREST).transpose(Image.FLIP_TOP_BOTTOM)
-        )
+        self.front.fr_tab_circle.update_canvas(self.image)
 
     def redraw_circle(self, a=None, b=None, c=None):
         self.clear_img()
@@ -135,7 +132,7 @@ class Rasters:
                 self.paint_pixel(x, y, color)
                 x += inc
 
-    def circulo_parametrico(self, xc, yc, radius, step, color):
+    def circulo_parametrico(self, xc, yc, radius, color, step=1):
         x = xc + radius
         y = yc
 
@@ -157,7 +154,7 @@ class Rasters:
             self.paint_pixel(xc, yc, color)
             return
 
-        while x > y:
+        while x >= y:
             # Quadrant I
             self.paint_pixel(x + xc, y + yc, color)
             self.paint_pixel(y + xc, x + yc, color)
