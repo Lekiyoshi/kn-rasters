@@ -35,6 +35,7 @@ class MainUI(ttk.Frame):
 
         self.fr_tab_line.columnconfigure(0, weight=1)
         self.fr_tab_circle.columnconfigure(0, weight=1)
+        self.fr_tab_fill.columnconfigure(0, weight=1)
 
 
 class LineTab(ttk.Frame):
@@ -241,7 +242,7 @@ class LineTab(ttk.Frame):
     def update_canvas(self, image: Image):
         self.canvas.delete("all")
         self.photoimage = ImageTk.PhotoImage(  # Reference needed to prevent gargabe collection
-            image.resize((320, 320), Image.NEAREST).transpose(Image.FLIP_TOP_BOTTOM)
+            image.crop([0, 0, 40, 40]).resize((320, 320), Image.NEAREST)
         )
         self.canvas.create_image(0, 0, image=self.photoimage, anchor=tk.NW)
 
@@ -423,7 +424,7 @@ class CircleTab(ttk.Frame):
     def update_canvas(self, image: Image):
         self.canvas.delete("all")
         self.photoimage = ImageTk.PhotoImage(  # Reference needed to prevent gargabe collection
-            image.resize((320, 320), Image.NEAREST).transpose(Image.FLIP_TOP_BOTTOM)
+            image.crop([0, 0, 40, 40]).resize((320, 320), Image.NEAREST)
         )
         self.canvas.create_image(0, 0, image=self.photoimage, anchor=tk.NW)
 
@@ -432,9 +433,67 @@ class AreaFillTab(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        # Placeholders
-        self.tba_label = ttk.Label(self, anchor=tk.CENTER, text="A ser implementado...")
-        self.tba_label.pack(fill=tk.BOTH, expand=True)
+        #
+        # Raster options dropdown menu ('Area fill' tab)
+        self.fr_fill_options = ttk.Frame(self)
+        self.fr_fill_options.grid(row=0, column=0, padx=4, pady=8, sticky=tk.NSEW)
+
+        self.fill_options_label = ttk.Label(self.fr_fill_options, text="Fill options:")
+        self.fill_options_label.grid(row=0, column=0, padx=(0, 4), sticky=tk.W)
+        self.fill_options_var = tk.StringVar(self)
+        self.fill_options_list = [
+            "Flood Fill",
+            "Varredura com Análise Geométrica"
+        ]
+        self.fill_options_menu = ttk.OptionMenu(
+            self.fr_fill_options,
+            self.fill_options_var,
+            self.fill_options_list[0],
+            *self.fill_options_list
+        )
+        self.fill_options_menu.config(width=12)
+        self.fill_options_menu.grid(row=0, column=1, sticky=tk.W)
+
+        # Separator
+        self.sep = ttk.Separator(self.fr_fill_options, orient=tk.VERTICAL)
+        self.sep.grid(row=0, column=2, padx=6, sticky=tk.NS)
+
+        self.figure_options_label = ttk.Label(self.fr_fill_options, text="Figuras:")
+        self.figure_options_label.grid(row=0, column=3, padx=(0, 4), sticky=tk.W)
+        self.figure_options_var = tk.StringVar(self)
+        self.figure_options_list = [
+            "Retângulo",
+            "Figura A",
+            "Figura B",
+            "Figura C",
+            "Figura D"
+        ]
+        self.figure_options_menu = ttk.OptionMenu(
+            self.fr_fill_options,
+            self.figure_options_var,
+            self.figure_options_list[0],
+            *self.figure_options_list
+        )
+        self.figure_options_menu.config(width=12)
+        self.figure_options_menu.grid(row=0, column=4, sticky=tk.W)
+
+        #
+        # Display canvas ('Area fill' tab)
+        self.fr_img_view = ttk.Frame(self, borderwidth=1, relief=tk.SUNKEN)
+        self.fr_img_view.grid(row=1, column=0, padx=4, pady=(0, 4), sticky=tk.NSEW)
+
+        self.canvas = tk.Canvas(self.fr_img_view, borderwidth=-2)
+        self.canvas.config(width=320, height=320)
+        self.canvas.pack()
+
+        self.photoimage = None
+
+    def update_canvas(self, image: Image):
+        self.canvas.delete("all")
+        self.photoimage = ImageTk.PhotoImage(  # Reference needed to prevent gargabe collection
+            image.resize((320, 320), Image.NEAREST)
+        )
+        self.canvas.create_image(0, 0, image=self.photoimage, anchor=tk.NW)
 
 
 class BezierTab(ttk.Frame):
@@ -444,4 +503,3 @@ class BezierTab(ttk.Frame):
         # Placeholders
         self.tba_label = ttk.Label(self, anchor=tk.CENTER, text="A ser implementado...")
         self.tba_label.pack(fill=tk.BOTH, expand=True)
-

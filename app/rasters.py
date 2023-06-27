@@ -1,15 +1,23 @@
+import sys
 from math import cos, sin, radians
 
+import yaml
 from PIL import Image, ImageColor
 
 from ui import MainUI
+
+sys.setrecursionlimit(20000)
+
+yaml_file = open("./app/preenchimento.yaml")
+fill_coords = yaml.full_load(yaml_file)
+yaml_file.close()
 
 
 class Rasters:
     def __init__(
             self,
             front: MainUI = None,
-            image: Image = Image.new("RGBA", (40, 40), "white")
+            image: Image = Image.new("RGBA", (160, 160), "white")
     ):
         self.front = front
         self.image = image
@@ -17,6 +25,7 @@ class Rasters:
         # Initial states for each canvas in UI
         self.draw_line()
         self.redraw_circle()
+        self.refill_area()
 
         # Bindings
         if front is not None:
@@ -31,6 +40,9 @@ class Rasters:
             self.front.fr_tab_circle.yc_var.trace("w", self.redraw_circle)
             self.front.fr_tab_circle.radius_var.trace("w", self.redraw_circle)
             self.front.fr_tab_circle.circle_options_var.trace("w", self.redraw_circle)
+            # Area fill tab
+            self.front.fr_tab_fill.fill_options_var.trace("w", self.refill_area)
+            self.front.fr_tab_fill.figure_options_var.trace("w", self.refill_area)
 
     def clear_img(self):
         # 'Clears' the image, painting with white
@@ -89,6 +101,75 @@ class Rasters:
     def redraw_circle(self, a=None, b=None, c=None):
         self.clear_img()
         self.draw_circle()
+
+    def fill_area(self):
+        if self.front is None:
+            return
+
+        figure_map = {
+            'Retângulo': "rectangle",
+            'Figura A': "figure_a",
+            'Figura B': "figure_b",
+            'Figura C': "figure_c",
+            'Figura D': "figure_d",
+        }
+
+        method = self.front.fr_tab_fill.fill_options_var.get()
+        figure = self.front.fr_tab_fill.figure_options_var.get()
+        figure_option = figure_map[figure]
+        shape_coords = fill_coords[figure_option]
+
+        if method == "Flood Fill":
+            # Create the polygon shape with lines to form an enclosed area
+            for i in range(0, len(shape_coords['vertices'])):
+                x1 = shape_coords['vertices'][i - 1]['x']
+                x2 = shape_coords['vertices'][i]['x']
+                y1 = shape_coords['vertices'][i - 1]['y']
+                y2 = shape_coords['vertices'][i]['y']
+
+                if abs(x2 - x1) > abs(y2 - y1):
+                    if x2 > x1:
+                        self.linha_dda(x1, y1, x2, y2, ImageColor.getcolor("black", "RGBA"))
+                    else:
+                        self.linha_dda(x2, y2, x1, y1, ImageColor.getcolor("black", "RGBA"))
+                else:
+                    if y2 > y1:
+                        self.linha_dda(x1, y1, x2, y2, ImageColor.getcolor("black", "RGBA"))
+                    else:
+                        self.linha_dda(x2, y2, x1, y1, ImageColor.getcolor("black", "RGBA"))
+
+            # Starting points for each enclosed area
+            for i in range(0, len(shape_coords['seeds'])):
+                self.flood_fill(
+                    shape_coords['seeds'][i]['x'],
+                    shape_coords['seeds'][i]['y'],
+                    ImageColor.getcolor("white", "RGBA"),
+                    ImageColor.getcolor("red", "RGBA")
+                )
+        elif method == "Varredura com Análise Geométrica":
+            # Build edges table
+            edges_table = []
+            for i in range(0, len(shape_coords['vertices'])):
+                x1 = shape_coords['vertices'][i - 1]['x']
+                y1 = shape_coords['vertices'][i - 1]['y']
+                x2 = shape_coords['vertices'][i]['x']
+                y2 = shape_coords['vertices'][i]['y']
+                m = (y2 - y1) / (x2 - x1) if (x2 - x1) else None  # Vertical edges default to None
+
+                if m == 0:
+                    continue  # Skip horizontal edges
+                elif y2 >= y1:
+                    edges_table.append((y1, y2, x1, m))
+                else:
+                    edges_table.append((y2, y1, x2, m))
+
+            self.analise_geom_fill(edges_table, ImageColor.getcolor("blue", "RGBA"))
+
+        self.front.fr_tab_fill.update_canvas(self.image)
+
+    def refill_area(self, a=None, b=None, c=None):
+        self.clear_img()
+        self.fill_area()
 
     def save_img(self, filename: str):
         self.image.transpose(Image.FLIP_TOP_BOTTOM).save("./output/" + filename, format="png")
@@ -172,3 +253,54 @@ class Rasters:
             yn = y
             x = xn * cos(theta) - yn * sin(theta)
             y = yn * cos(theta) + xn * sin(theta)
+
+    def flood_fill(self, x, y, old_color, new_color):
+        current_color = self.image.getpixel((x, y))
+        if current_color == old_color:
+            self.image.putpixel((x, y), new_color)
+            self.flood_fill(x, y + 1, old_color, new_color)
+            self.flood_fill(x + 1, y, old_color, new_color)
+            self.flood_fill(x, y - 1, old_color, new_color)
+            self.flood_fill(x - 1, y, old_color, new_color)
+
+    def analise_geom_fill(self, edges_table, color):
+        min_y = min([e[0] for e in edges_table])
+        max_y = max([e[1] for e in edges_table])
+
+        # Scan happens from 'min_y' to 'max_y'
+        for cur_y in range(min_y, max_y + 1):
+            intersections = []
+            for edge in edges_table:
+                min_y = edge[0]
+                max_y = edge[1]
+                x_of_min_y = edge[2]
+                m = edge[3]
+
+                if min_y <= cur_y <= max_y:
+                    if m is None:
+                        # Vertical edge, use x of min_y instead
+                        intersections.append(x_of_min_y)
+                        continue
+
+                    # Find the point of intersection ('x') for the current edge
+                    x = (cur_y - min_y) / m + x_of_min_y
+                    intersections.append(x)
+
+            print(cur_y, intersections)
+
+            intersections.sort()  # Sorting intersection values is needed
+            next_x = intersections.pop(0)
+            paint_count = 0
+
+            for cur_x in range(0, self.image.width):
+                # Increment 'paint_count' each time scan crosses an intersection
+                if cur_x >= next_x:
+                    paint_count += 1
+                    try:
+                        next_x = intersections.pop(0)
+                    except IndexError:
+                        next_x = float('inf')
+
+                # Paint if 'inside' geometry
+                if paint_count % 2 == 1:
+                    self.paint_pixel(cur_x, cur_y, color)
